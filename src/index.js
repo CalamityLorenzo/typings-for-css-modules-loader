@@ -37,7 +37,6 @@ module.exports = function(...input) {
     logger('warn','Typings for CSS-Modules: option `modules` is not active - skipping extraction work...');
     return delegateToCssLoader(this, input, callback);
   }
-  // delegateToCssLoader(this, input, callback);
 
   // mock async step 2 - offer css loader a "fake" callback
   this.async = () => (err, content) => {
@@ -59,7 +58,6 @@ module.exports = function(...input) {
     }
     
     let cssModuleDefinition;
-    console.log(query);
     if (namedExportCapture) {
       cssModuleDefinition = generateGenericExportInterface(cssModuleKeys, filename);
     } else {
