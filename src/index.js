@@ -1,5 +1,5 @@
 import cssLoader from 'css-loader';
-import cssLocalsLoader from 'css-loader/locals';
+// import cssLocalsLoader from 'css-loader/locals';
 import loaderUtils from 'loader-utils';
 
 import {
@@ -11,29 +11,37 @@ import {
 } from './cssModuleToInterface';
 import * as persist from './persist';
 import loggerCreator from './logger';
+import { object } from 'prop-types';
 
 function delegateToCssLoader(ctx, input, callback) {
   ctx.async = () => callback;
+  // Object.keys(input).forEach(itm=>console.log(itm + "=" + input[itm]));
   cssLoader.call(ctx, ...input);
 }
 
 module.exports = function(...input) {
   if(this.cacheable) this.cacheable();
-
+// Object.keys(this.query).forEach(itm=>console.log(itm));
   // mock async step 1 - css loader is async, we need to intercept this so we get async ourselves
   const callback = this.async();
 
-  const query = this.query ? loaderUtils.parseQuery(this.query) : {};
-  const logger = loggerCreator(query.silent);
+  const query = this.query ? loaderUtils.getOptions(this) : {};
 
-  const moduleMode = query.modules || query.module;
+  var namedExportCapture= this.query.namedExport;
+  
+// jesus christ..
+  delete this.query.namedExport;
+  const logger = loggerCreator();
+  const moduleMode = this.query.modules || this.query.module;
   if (!moduleMode) {
     logger('warn','Typings for CSS-Modules: option `modules` is not active - skipping extraction work...');
     return delegateToCssLoader(this, input, callback);
   }
+  // delegateToCssLoader(this, input, callback);
 
   // mock async step 2 - offer css loader a "fake" callback
   this.async = () => (err, content) => {
+
     if (err) {
       return callback(err);
     }
@@ -47,11 +55,12 @@ module.exports = function(...input) {
     while (match = keyRegex.exec(content)) {
       if (cssModuleKeys.indexOf(match[1]) < 0) {
         cssModuleKeys.push(match[1]);
-      }
+       }
     }
-
+    
     let cssModuleDefinition;
-    if (!query.namedExport) {
+    console.log(query);
+    if (namedExportCapture) {
       cssModuleDefinition = generateGenericExportInterface(cssModuleKeys, filename);
     } else {
       const [cleanedDefinitions, skippedDefinitions,] = filterNonWordClasses(cssModuleKeys);
@@ -83,7 +92,9 @@ These can be accessed using the object literal syntax; eg styles['delete'] inste
     }
     persist.writeToFileIfChanged(cssModuleInterfaceFilename, cssModuleDefinition);
     // mock async step 3 - make `async` return the actual callback again before calling the 'real' css-loader
-    delegateToCssLoader(this, input, callback);
+    // delegateToCssLoader(this, input, this.async());  
+    callback(null, content);
   };
-  cssLocalsLoader.call(this, ...input);
+  delegateToCssLoader(this, input, this.async());
+  // cssLocalsLoader.call(this, ...input);
 };

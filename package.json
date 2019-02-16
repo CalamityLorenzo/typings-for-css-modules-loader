@@ -6,7 +6,7 @@
   "scripts": {
     "build": "babel src -d lib",
     "prepublish": "npm run build",
-    "pretest": "rm -f ./test/example*.css.d.ts",
+    "pretest": "",
     "test:diff": "(cd test; set -e; for f in example*css.d.ts; do diff $f expected-$f; done;)",
     "test:run": "babel-node ./node_modules/webpack/bin/webpack --config ./test/webpack.config.babel.js",
     "test:run-twice": "npm run test:run > /dev/null 2>&1 && npm run test:run",
@@ -27,8 +27,7 @@
     "css modules webpack typings"
   ],
   "dependencies": {
-    "graceful-fs": "^4.1.15",
-    "loader-utils": "^1.1.0"
+    "graceful-fs": "^4.1.15"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -38,9 +37,10 @@
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
-    "css-loader": "^1.0.1",
+    "css-loader": "^2.1.0",
     "eslint": "^5.9.0",
     "eslint-plugin-babel": "^5.3.0",
+    "loader-utils": "^1.2.3",
     "ts-loader": "~5.3.0",
     "typescript": "~3.1.6",
     "webpack": "~4.26.1",
